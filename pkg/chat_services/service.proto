@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package main;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "chatbox/pkg/chat_services";
+
+service ChatServices {
+    // Get all active rooms.
+    rpc GetActiveRooms(ActiveRoomsRequest) returns (RoomList) {}
+    // Get room information based on it.
+    rpc GetRoom(RoomId) returns (Room) {}
+    // Request to create a new chatroom.
+    rpc CreateRoom(RoomRequest) returns (Room) {}
+    // Bidirectional rpc stream for sending and receiving messages.
+    rpc RouteChat(stream ChatMessage) returns (stream ChatMessage) {}
+}
+
+message RoomList {
+    repeated Room rooms = 1;
+}
+
+enum RoomType {
+    ACTIVE = 0;
+    INACTIVE = 1;
+}
+
+message Room {
+    RoomId roomId = 1;
+    RoomRequest roomName = 2;
+    int64 participants = 3;
+    bool isSecure = 4;
+    RoomType roomStatus = 5;
+}
+
+message RoomId {
+    string id = 1;
+}
+
+message RoomRequest {
+    string name = 1;
+}
+
+message ActiveRoomsRequest {
+    RoomType roomType = 1;
+}
+
+message Username {
+    string name = 1;
+}
+
+message ChatMessage {
+    string destRoomId = 1;
+    string message = 2;
+    enum StyleType {
+        STANDARD = 0;
+        HIGHLIGHT = 1;
+        BANNER = 2;
+        DESTRUCT = 3;
+    }
+    StyleType styleType = 4;
+    string color = 5;
+    google.protobuf.Timestamp timestamp = 6;
+    Username user = 7;
+}
+
+message UsernameRequest {
+    Username user = 1;
+    RoomId roomId = 2;
+}
+
+message ValidUsername {
+    Username user = 1;
+    bool isValid = 2;
+}
+
+message JoinRoomRequest {
+    oneof roomPointers {
+        string id = 1;
+        string name = 2;
+    }
+    Username user = 3;
+}
+
+message JoinRoomResponse {
+    oneof response {
+        Room room = 1;
+        string error = 2;
+    }
+}
